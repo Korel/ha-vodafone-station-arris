@@ -7,8 +7,15 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.components.device_tracker import CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import callback
 
 from .api import (
     ArrisStationClient,
@@ -54,6 +61,11 @@ async def _validate(data: Mapping[str, Any]) -> tuple[RouterData | None, dict[st
 class ArrisConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> ArrisOptionsFlow:
+        return ArrisOptionsFlow()
+
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -88,3 +100,20 @@ class ArrisConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={CONF_HOST: entry.data[CONF_HOST]},
             errors=errors,
         )
+
+
+class ArrisOptionsFlow(OptionsFlowWithReload):
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+        current = self.config_entry.options.get(
+            CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME.total_seconds()
+        )
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_CONSIDER_HOME, default=int(current)): vol.All(
+                    vol.Coerce(int), vol.Range(min=0, max=900)
+                )
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)

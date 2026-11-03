@@ -29,6 +29,19 @@
       "reauth_successful": "Password updated."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Presence detection",
+        "data": {
+          "consider_home": "Seconds before an absent device is marked away"
+        },
+        "data_description": {
+          "consider_home": "Bridges short Wi-Fi drops. Keep it low when the same person also has a GPS tracker (Companion app)."
+        }
+      }
+    }
+  },
   "entity": {
     "binary_sensor": {
       "web_ui_in_use": { "name": "Web UI in use" },

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 
 from homeassistant.components.device_tracker import (
+    CONF_CONSIDER_HOME,
     DEFAULT_CONSIDER_HOME,
     DOMAIN as DEVICE_TRACKER_DOMAIN,
 )
@@ -69,6 +70,9 @@ class ArrisCoordinator(DataUpdateCoordinator[CoordinatorData]):
             entry.data[CONF_PASSWORD],
             async_client_session(hass),
         )
+        self.consider_home = timedelta(
+            seconds=entry.options.get(CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME.total_seconds())
+        )
         registry = er.async_get(hass)
         # Restore trackers for devices that are away at startup.
         self._known_macs: set[str] = {
@@ -110,7 +114,7 @@ class ArrisCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 continue
             old = previous.get(mac)
             last_seen = old.last_seen if old else None
-            home = last_seen is not None and now - last_seen < DEFAULT_CONSIDER_HOME
+            home = last_seen is not None and now - last_seen < self.consider_home
             merged[mac] = TrackedDevice(mac, old.device if old else None, last_seen, home)
         return merged
 

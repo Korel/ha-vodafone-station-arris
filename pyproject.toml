@@ -1,6 +1,6 @@
 [project]
 name = "ha-vodafone-station-arris"
-version = "0.1.0"
+version = "0.2.0"
 description = "Home Assistant custom integration for ARRIS-based Vodafone Stations (TG6442)"
 requires-python = ">=3.13"
 

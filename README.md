@@ -17,6 +17,10 @@ The TG3442DE uses the same web UI protocol and may work too (untested).
   downstream power min/max, upstream power max, last successful read.
 - **Binary sensors:** Wi-Fi, guest Wi-Fi, *Web UI in use*.
 
+**Option:** *Configure → Seconds before an absent device is marked away* (default 180).
+If the same person also has a GPS tracker from the Companion app, keep it low (e.g. 60):
+HA lets a router tracker's `home` win over GPS, so a long delay holds you at home after leaving.
+
 ## The router allows only one web session
 
 Logging in silently takes over any other session. To avoid kicking you out of the

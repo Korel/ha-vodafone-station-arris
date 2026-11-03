@@ -1,10 +1,13 @@
+from dataclasses import replace
+from datetime import timedelta
 from unittest.mock import patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant import config_entries
+from homeassistant.components.device_tracker import CONF_CONSIDER_HOME
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, STATE_HOME, STATE_OFF, STATE_ON
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, STATE_HOME, STATE_NOT_HOME, STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr, entity_registry as er
@@ -26,9 +29,11 @@ def _register_known_macs(hass: HomeAssistant, *macs: str) -> None:
         )
 
 
-async def _setup(hass: HomeAssistant, router_data) -> MockConfigEntry:
+async def _setup(hass: HomeAssistant, router_data, options: dict | None = None) -> MockConfigEntry:
     _register_known_macs(hass, "02:00:00:00:00:01", "02:00:00:00:00:02", "02:00:00:00:00:99")
-    entry = MockConfigEntry(domain=DOMAIN, data=USER_INPUT, unique_id="TESTSERIAL0001")
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=USER_INPUT, unique_id="TESTSERIAL0001", options=options or {}
+    )
     entry.add_to_hass(hass)
     with patch(FETCH, return_value=router_data):
         assert await hass.config_entries.async_setup(entry.entry_id)
@@ -119,3 +124,38 @@ async def test_invalid_auth_starts_reauth(hass: HomeAssistant, router_data) -> N
         await hass.async_block_till_done()
     flows = hass.config_entries.flow.async_progress()
     assert [f["context"]["source"] for f in flows] == [config_entries.SOURCE_REAUTH]
+
+
+async def test_options_flow_sets_consider_home(hass: HomeAssistant, router_data) -> None:
+    entry = await _setup(hass, router_data)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    with patch(FETCH, return_value=router_data):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {CONF_CONSIDER_HOME: 60}
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options == {CONF_CONSIDER_HOME: 60}
+
+
+async def _leave_for(hass: HomeAssistant, entry, router_data, freezer, seconds: int) -> str:
+    """Phone drops off the router, then `seconds` pass before the next poll."""
+    without_phone = replace(router_data, devices=dict(router_data.devices))
+    without_phone.devices.pop("02:00:00:00:00:02")
+    freezer.tick(timedelta(seconds=seconds))
+    with patch(FETCH, return_value=without_phone):
+        await entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+    return hass.states.get("device_tracker.phone").state
+
+
+async def test_consider_home_option_shortens_away_delay(hass: HomeAssistant, router_data, freezer) -> None:
+    entry = await _setup(hass, router_data, options={CONF_CONSIDER_HOME: 60})
+    assert await _leave_for(hass, entry, router_data, freezer, 90) == STATE_NOT_HOME
+
+
+async def test_default_consider_home_is_180s(hass: HomeAssistant, router_data, freezer) -> None:
+    entry = await _setup(hass, router_data)
+    assert await _leave_for(hass, entry, router_data, freezer, 90) == STATE_HOME
+    assert await _leave_for(hass, entry, router_data, freezer, 100) == STATE_NOT_HOME
