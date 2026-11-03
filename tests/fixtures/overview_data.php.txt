@@ -1,0 +1,22 @@
+
+
+
+<script type="text/javascript"  nonce="abc">
+js_isCmOperational = '1';
+js_wifiEnable = 'true';
+js_guestWifiEnable = 'false';
+js_wpsEnable = 'true';
+js_numbersPhone = '1';
+js_phone1 = '+490000000000';
+js_hostNums = '5';
+js_lanHostNums = '1';
+js_primaryWlanHostNums = '2';
+js_guestWlanHostNums = '1';
+json_lanAttachedDevice = [{"MAC":"02:00:00:00:00:01","Active":true,"Index":1,"HostName":"server","IPv4":"192.168.0.10","IPv6":"","Interface":"Device.Ethernet.Interface.1","IndexAP":"","X_VODAFONE_HostType":"0","Speed":"1 Gbps"}];
+json_primaryWlanAttachedDevice = [{"MAC":"02:00:00:00:00:02","Active":true,"Index":2,"HostName":"phone","IPv4":"192.168.0.20","IPv6":"","Interface":"Device.WiFi.SSID.2","IndexAP":"Device.WiFi.AccessPoint.2.AssociatedDevice.1","X_VODAFONE_HostType":"0","Speed":"-","LinkRate":864.700000000000045474735088646411895751953125},{"MAC":"02:00:00:00:00:03","Active":false,"Index":3,"HostName":"inactive","IPv4":"192.168.0.30","IPv6":"","Interface":"Device.WiFi.SSID.1","IndexAP":"","X_VODAFONE_HostType":"0","Speed":"-","LinkRate":72.2}];
+json_guestWlanAttachedDevice = [{"MAC":"02:00:00:00:00:04","Active":true,"Index":4,"HostName":"","IPv4":"192.168.0.40","IPv6":"","Interface":"Device.WiFi.SSID.3","IndexAP":"","X_VODAFONE_HostType":"0","Speed":"-","LinkRate":144}];
+js_lanAttachedDevice = (""!=json_lanAttachedDevice) ? JSON.parse(JSON.stringify(json_lanAttachedDevice)): "";
+
+_ga.gwMode = 'Dualstack';
+_ga.modemConnectionStatus = 'DOCSIS Online';
+</script>

@@ -1,0 +1,12 @@
+<script type="text/javascript">
+js_dsNums = '3';
+js_usNums = '2';
+js_ofdmNums = '1';
+json_dsData = 
+[{"ChannelType":"OFDM","Modulation":"4096QAM","Frequency":"135~324","ChannelID":"193","PowerLevel":"0\/60","SNRLevel":"40","LockStatus":"Locked"
+},{"ChannelType":"SC-QAM","Frequency":570,"PowerLevel":"-5.3\/54.7","SNRLevel":35.7999999999999971578290569595992565155029296875,"Modulation":"256QAM","ChannelID":"3","LockStatus":"Locked"
+},{"ChannelType":"SC-QAM","Frequency":"","PowerLevel":"","SNRLevel":"","Modulation":"UNSUPPORTED","ChannelID":"0","LockStatus":"NotLocked"
+}];
+json_usData = [{"ChannelType":"OFDMA","Frequency":"29~64","ChannelID":"41","PowerLevel":"57.5\/117.5","Modulation":"1024QAM","LockStatus":"OPERATE"},{"ChannelType":"SC-QAM","Frequency":"30","ChannelID":"1","PowerLevel":"49.8\/109.8","Modulation":"64QAM","LockStatus":"OPERATE"}];
+js_dsData = JSON.parse(JSON.stringify(json_dsData));
+</script>

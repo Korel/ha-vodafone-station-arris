@@ -1,0 +1,57 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vodafone Station (ARRIS)",
+        "description": "Log out of the router's web UI first: the router allows only one session.",
+        "data": {
+          "host": "Host",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-enter router password",
+        "description": "The router at {host} rejected the stored password.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the router.",
+      "invalid_auth": "Login rejected. Wrong password, or the router is in its lockout countdown; wait a minute before retrying.",
+      "not_arris": "This host does not look like an ARRIS Vodafone Station.",
+      "web_ui_busy": "Someone is logged into the router's web UI. Log out there and try again."
+    },
+    "abort": {
+      "already_configured": "This router is already configured.",
+      "reauth_successful": "Password updated."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "web_ui_in_use": { "name": "Web UI in use" },
+      "wifi_enabled": { "name": "Wi-Fi" },
+      "guest_wifi_enabled": { "name": "Guest Wi-Fi" }
+    },
+    "sensor": {
+      "last_boot": { "name": "Last boot" },
+      "last_read": { "name": "Last successful read" },
+      "firmware": { "name": "Firmware" },
+      "wan_ipv4": { "name": "WAN IPv4" },
+      "wan_ipv6": { "name": "WAN IPv6" },
+      "modem_status": { "name": "Modem status" },
+      "connected_devices": { "name": "Connected devices" },
+      "lan_devices": { "name": "LAN devices" },
+      "wifi_devices": { "name": "Wi-Fi devices" },
+      "guest_wifi_devices": { "name": "Guest Wi-Fi devices" },
+      "downstream_locked": { "name": "Downstream channels locked" },
+      "upstream_locked": { "name": "Upstream channels locked" },
+      "downstream_snr_min": { "name": "Downstream SNR min" },
+      "downstream_power_min": { "name": "Downstream power min" },
+      "downstream_power_max": { "name": "Downstream power max" },
+      "upstream_power_max": { "name": "Upstream power max" }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+
+
+
+<script type="text/javascript">
+
+    var js_SerialNumber = 'TESTSERIAL0001';
+    var js_FWVersion = 'AR01.05.069.14_070726_735.PC20.20.VF';
+    var js_HWTypeVersion = '9';
+    var js_UptimeSinceReboot = '02,03,04';
+    var js_DateTime = '03.11.2026 | 02:55';
+    var js_ipv4addr = '203.0.113.7';
+    var js_ipv6addr = '2001:db8::7';
+    var js_ethernet_port1_status  = 'Active';
+    var js_WLAN24G_SSID = 'test-ssid';
+
+</script>
