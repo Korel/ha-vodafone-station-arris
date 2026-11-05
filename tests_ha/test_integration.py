@@ -159,3 +159,19 @@ async def test_default_consider_home_is_180s(hass: HomeAssistant, router_data, f
     entry = await _setup(hass, router_data)
     assert await _leave_for(hass, entry, router_data, freezer, 90) == STATE_HOME
     assert await _leave_for(hass, entry, router_data, freezer, 100) == STATE_NOT_HOME
+
+
+async def test_connected_devices_sensor_lists_devices(hass: HomeAssistant, router_data) -> None:
+    await _setup(hass, router_data)
+    state = hass.states.get("sensor.vodafone_station_connected_devices")
+    assert state.attributes["devices"] == [
+        {"name": "02:00:00:00:00:04", "ip": "192.168.0.40", "mac": "02:00:00:00:00:04", "connection": "guest_wifi"},
+        {"name": "phone", "ip": "192.168.0.20", "mac": "02:00:00:00:00:02", "connection": "wifi"},
+        {"name": "server", "ip": "192.168.0.10", "mac": "02:00:00:00:00:01", "connection": "lan"},
+    ]
+
+
+async def test_device_list_is_not_recorded(hass: HomeAssistant, router_data) -> None:
+    from custom_components.vodafone_station_arris.sensor import ArrisSensor
+
+    assert "devices" in ArrisSensor._unrecorded_attributes

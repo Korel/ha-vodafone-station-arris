@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -40,9 +41,20 @@ def _agg(channels: list[DocsisChannel], attr: str, fn: Callable[..., float]) -> 
     return round(fn(values), 1) if values else None
 
 
+def _device_list(data: CoordinatorData) -> dict[str, Any]:
+    devices = sorted(data.router.devices.values(), key=lambda d: d.name.lower())
+    return {
+        "devices": [
+            {"name": d.name, "ip": d.ip_address, "mac": d.mac, "connection": d.connection}
+            for d in devices
+        ]
+    }
+
+
 @dataclass(frozen=True, kw_only=True)
 class ArrisSensorDescription(SensorEntityDescription):
     value_fn: Callable[[CoordinatorData], str | int | float | datetime | None]
+    attrs_fn: Callable[[CoordinatorData], dict[str, Any]] | None = None
 
 
 SENSORS: tuple[ArrisSensorDescription, ...] = (
@@ -89,6 +101,7 @@ SENSORS: tuple[ArrisSensorDescription, ...] = (
         translation_key="connected_devices",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=_count,
+        attrs_fn=_device_list,
     ),
     ArrisSensorDescription(
         key="lan_devices",
@@ -166,6 +179,8 @@ async def async_setup_entry(
 
 class ArrisSensor(ArrisRouterEntity, SensorEntity):
     entity_description: ArrisSensorDescription
+    # The device count flaps often; recording the full list each time bloats the DB.
+    _unrecorded_attributes = frozenset({"devices"})
 
     def __init__(self, coordinator, description: ArrisSensorDescription) -> None:
         super().__init__(coordinator, description.key)
@@ -174,3 +189,9 @@ class ArrisSensor(ArrisRouterEntity, SensorEntity):
     @property
     def native_value(self) -> str | int | float | datetime | None:
         return self.entity_description.value_fn(self.coordinator.data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        if (attrs_fn := self.entity_description.attrs_fn) is None:
+            return None
+        return attrs_fn(self.coordinator.data)

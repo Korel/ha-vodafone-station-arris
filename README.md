@@ -16,6 +16,15 @@ The TG3442DE uses the same web UI protocol and may work too (untested).
   last boot, firmware, WAN IPv4/IPv6, DOCSIS locked channels, downstream SNR min,
   downstream power min/max, upstream power max, last successful read.
 - **Binary sensors:** Wi-Fi, guest Wi-Fi, *Web UI in use*.
+- **Who's connected:** the *Connected devices* sensor has a `devices` attribute
+  listing every device the router reports (name, IP, MAC, connection), whether or not
+  its tracker is enabled. Not stored in history. Dashboard Markdown card:
+
+  ```jinja
+  {% for d in state_attr('sensor.vodafone_station_connected_devices', 'devices') or [] %}
+  - **{{ d.name }}** · {{ d.ip }} · {{ d.connection }}
+  {% endfor %}
+  ```
 
 **Option:** *Configure → Seconds before an absent device is marked away* (default 180).
 If the same person also has a GPS tracker from the Companion app, keep it low (e.g. 60):
