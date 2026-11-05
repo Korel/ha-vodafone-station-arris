@@ -66,5 +66,8 @@
       "downstream_power_max": { "name": "Downstream power max" },
       "upstream_power_max": { "name": "Upstream power max" }
     }
+  },
+  "exceptions": {
+    "restart_failed": { "message": "Router restart failed: {error}" }
   }
 }

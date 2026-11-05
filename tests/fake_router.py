@@ -27,6 +27,8 @@ class FakeRouter:
         self.logouts: list[str] = []
         self.reads = 0
         self.take_over_after_reads: int | None = None
+        self.restart_requests: list[dict] = []
+        self.take_over_before_restart = False
 
         self.app = web.Application()
         self.app.router.add_get("/", self.index)
@@ -34,6 +36,7 @@ class FakeRouter:
         self.app.router.add_post("/php/ajaxSet_Session.php", self.activate)
         self.app.router.add_get("/php/{page}_data.php", self.data)
         self.app.router.add_post("/php/logout.php", self.logout)
+        self.app.router.add_post("/php/ajaxSet_status_restart.php", self.restart)
 
     @staticmethod
     def _sid(request: web.Request) -> str | None:
@@ -95,4 +98,12 @@ class FakeRouter:
         if self.active == sid:
             self.active = None
         self.csrf.pop(sid, None)
+        return web.Response(text="")
+
+    async def restart(self, request: web.Request) -> web.Response:
+        if self.take_over_before_restart:
+            self.active = "someone-else"
+        if not self._authed(request):
+            return web.Response(status=400, text=SESSION_LOST)
+        self.restart_requests.append(await request.json())
         return web.Response(text="")

@@ -7,7 +7,7 @@ Tested on: **ARRIS TG6442**, firmware `01.05.069.14.EURO.PC20`
 (`AR01.05.069.14_070726_735.PC20.20.VF`), Home Assistant 2026.10.4.
 The TG3442DE uses the same web UI protocol and may work too (untested).
 
-## What you get (read-only)
+## What you get
 
 - **Device trackers** for every device on LAN, Wi-Fi and guest Wi-Fi.
   As with other router integrations, trackers for devices HA doesn't otherwise know
@@ -16,6 +16,10 @@ The TG3442DE uses the same web UI protocol and may work too (untested).
   last boot, firmware, WAN IPv4/IPv6, DOCSIS locked channels, downstream SNR min,
   downstream power min/max, upstream power max, last successful read.
 - **Binary sensors:** Wi-Fi, guest Wi-Fi, *Web UI in use*.
+- **Restart button:** reboots the router (about 3 minutes offline). It logs in even if
+  the web UI is in use, since a reboot ends that session anyway. It sends only the
+  restart request; the same router endpoint also does factory resets, which this
+  integration never sends. Device trackers don't count the outage as absence.
 - **Who's connected:** the *Connected devices* sensor has a `devices` attribute
   listing every device the router reports (name, IP, MAC, connection), whether or not
   its tracker is enabled. Not stored in history. Dashboard Markdown card:

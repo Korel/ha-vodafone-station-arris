@@ -2,6 +2,8 @@ from dataclasses import replace
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
+
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant import config_entries
@@ -175,3 +177,42 @@ async def test_device_list_is_not_recorded(hass: HomeAssistant, router_data) -> 
     from custom_components.vodafone_station_arris.sensor import ArrisSensor
 
     assert "devices" in ArrisSensor._unrecorded_attributes
+
+
+RESTART = "custom_components.vodafone_station_arris.api.ArrisStationClient.restart"
+
+
+async def test_restart_button_reboots_router(hass: HomeAssistant, router_data) -> None:
+    await _setup(hass, router_data)
+    state = hass.states.get("button.vodafone_station_restart")
+    assert state.attributes["device_class"] == "restart"
+    with patch(RESTART) as restart:
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.vodafone_station_restart"}, blocking=True
+        )
+    restart.assert_awaited_once()
+
+
+async def test_restart_failure_is_reported(hass: HomeAssistant, router_data) -> None:
+    from homeassistant.exceptions import HomeAssistantError
+
+    from custom_components.vodafone_station_arris.api import CannotConnect
+
+    await _setup(hass, router_data)
+    with patch(RESTART, side_effect=CannotConnect("down")), pytest.raises(HomeAssistantError) as exc:
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.vodafone_station_restart"}, blocking=True
+        )
+    assert exc.value.translation_key == "restart_failed"
+
+
+async def test_router_outage_does_not_mark_devices_away(hass: HomeAssistant, router_data, freezer) -> None:
+    from custom_components.vodafone_station_arris.api import CannotConnect
+
+    entry = await _setup(hass, router_data, options={CONF_CONSIDER_HOME: 60})
+    freezer.tick(timedelta(seconds=60))
+    with patch(FETCH, side_effect=CannotConnect("rebooting")):
+        await entry.runtime_data.async_refresh()
+    # Back after a ~3 min reboot; the phone hasn't rejoined Wi-Fi yet.
+    assert await _leave_for(hass, entry, router_data, freezer, 150) == STATE_HOME
+    assert await _leave_for(hass, entry, router_data, freezer, 70) == STATE_NOT_HOME

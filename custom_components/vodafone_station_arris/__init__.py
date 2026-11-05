@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import ArrisConfigEntry, ArrisCoordinator
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.DEVICE_TRACKER, Platform.SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ArrisConfigEntry) -> bool:

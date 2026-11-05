@@ -128,3 +128,38 @@ async def test_non_arris_host(router_and_client) -> None:
     client = await router_and_client(FakeRouter(arris=False))
     with pytest.raises(NotArrisDevice):
         await client.fetch()
+
+
+async def test_restart_sends_only_restart(router_and_client) -> None:
+    router = FakeRouter()
+    client = await router_and_client(router)
+    await client.restart()
+    # "Reset" on the same endpoint is a factory reset.
+    assert router.restart_requests == [{"RestartReset": "Restart"}]
+    assert router.login_attempts == 1
+
+
+async def test_restart_proceeds_while_web_ui_in_use(router_and_client) -> None:
+    router = FakeRouter()
+    router.active = "browser-session"
+    client = await router_and_client(router)
+    await client.restart()
+    assert router.restart_requests == [{"RestartReset": "Restart"}]
+
+
+async def test_restart_wrong_password_tries_once(router_and_client) -> None:
+    router = FakeRouter(password="secret")
+    client = await router_and_client(router, password="wrong")
+    with pytest.raises(InvalidAuth):
+        await client.restart()
+    assert router.login_attempts == 1
+    assert router.restart_requests == []
+
+
+async def test_restart_rejected_raises(router_and_client) -> None:
+    router = FakeRouter()
+    router.take_over_before_restart = True
+    client = await router_and_client(router)
+    with pytest.raises(SessionLost):
+        await client.restart()
+    assert router.restart_requests == []

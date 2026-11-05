@@ -73,6 +73,7 @@ class ArrisCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self.consider_home = timedelta(
             seconds=entry.options.get(CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME.total_seconds())
         )
+        self._outage_ended: datetime | None = None
         registry = er.async_get(hass)
         # Restore trackers for devices that are away at startup.
         self._known_macs: set[str] = {
@@ -96,6 +97,8 @@ class ArrisCoordinator(DataUpdateCoordinator[CoordinatorData]):
             raise UpdateFailed(repr(err)) from err
 
         now = dt_util.utcnow()
+        if not self.last_update_success:
+            self._outage_ended = now
         devices = self._merge_devices(router, now)
         self._known_macs |= devices.keys()
         return CoordinatorData(
@@ -114,7 +117,11 @@ class ArrisCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 continue
             old = previous.get(mac)
             last_seen = old.last_seen if old else None
-            home = last_seen is not None and now - last_seen < self.consider_home
+            away_clock = last_seen
+            if old and old.home and last_seen and self._outage_ended:
+                # Devices need time to rejoin after a router reboot; don't count the outage as absence.
+                away_clock = max(last_seen, self._outage_ended)
+            home = away_clock is not None and now - away_clock < self.consider_home
             merged[mac] = TrackedDevice(mac, old.device if old else None, last_seen, home)
         return merged
 

@@ -23,6 +23,9 @@ TAG_BYTES = 16
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=15)
 HEADERS = {"X-Requested-With": "XMLHttpRequest", "User-Agent": "Mozilla/5.0"}
 
+# Same endpoint with "Reset" is a factory reset; only this payload may ever be sent.
+RESTART_PAYLOAD = {"RestartReset": "Restart"}
+
 # page name -> "mid" the web UI puts in the Referer
 DATA_PAGES = {
     "overview": "Overview",
@@ -361,3 +364,24 @@ class ArrisStationClient:
                 await self._logout(csrf)
             self._session.cookie_jar.clear()
         return build_router_data(page, pages)
+
+    async def restart(self) -> None:
+        """Reboot the router. Proceeds even if the web UI is in use: a reboot ends that session anyway."""
+        self._session.cookie_jar.clear()
+        page = await self.probe()
+        csrf = await self._login(page)
+        try:
+            await self._activate_session(csrf)
+            status, text = await self._request(
+                "POST",
+                "php/ajaxSet_status_restart.php",
+                json=RESTART_PAYLOAD,
+                headers={"csrfNonce": csrf, "Referer": f"{self.base_url}/?status_restart&mid=StatusRestart"},
+            )
+            if status in (400, 401) or "SESSION_LOST" in text:
+                raise SessionLost(f"restart: HTTP {status}")
+            if status != 200:
+                raise CannotConnect(f"restart: HTTP {status}")
+        finally:
+            # No logout: the router is going down, and after a takeover it could end someone else's session.
+            self._session.cookie_jar.clear()
