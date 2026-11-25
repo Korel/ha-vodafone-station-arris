@@ -91,3 +91,7 @@ Fixtures are synthetic.
 
 Credit: login flow cross-checked against
 [vodafone-station-cli](https://github.com/totev/vodafone-station-cli) (TG3442DE).
+
+## License
+
+[MIT](LICENSE)
